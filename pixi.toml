@@ -30,7 +30,7 @@ system-requirements = { macos = "15.0" }
 
 [dependencies]
 python = "==3.12"
-mojo = "<1.0.0" # includes `mojo-compiler`, lsp, debugger, formatter etc.
+mojo == "0.25.6" # includes `mojo-compiler`, lsp, debugger, formatter etc.
 max = "*"
 bash = ">=5.2.21,<6"
 manim = ">=0.18.1,<0.19"
@@ -42,6 +42,7 @@ nvidia = { features = ["nvidia"], solve-group = "nvidia" }
 amd = { features = ["amd"], solve-group = "amd" }
 apple = { features = ["apple"], solve-group = "apple" }
 default = { features = ["nvidia"] }
+
 
 [tasks]
 install-pre-commit = "pre-commit install"
