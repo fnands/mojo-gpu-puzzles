@@ -78,9 +78,48 @@ fn conv_1d_block_boundary[
     a: LayoutTensor[mut=False, dtype, in_layout],
     b: LayoutTensor[mut=False, dtype, conv_layout],
 ):
+    # Allocate shared memory using tensor builder
+    shared_in = tb[dtype]().row_major[TPB + CONV_2 - 1]().shared().alloc()
+    shared_conv = tb[dtype]().row_major[CONV]().shared().alloc()
+    #shared_out = tb[dtype]().row_major[SIZE]().shared().alloc()
+
     global_i = block_dim.x * block_idx.x + thread_idx.x
     local_i = thread_idx.x
-    # FILL ME IN (roughly 18 lines)
+
+    if global_i < SIZE_2:
+        shared_in[local_i] = a[global_i]
+    else:
+        shared_in[local_i] = 0
+
+    if local_i < CONV_2:
+        shared_conv[local_i] = b[local_i]
+    
+    if local_i < CONV_2 - 1:
+        next_id = global_i + TPB
+
+        if next_id < SIZE_2:
+            shared_in[local_i + TPB] = a[next_id]
+        else:
+            shared_in[local_i + TPB] = 0
+
+    barrier() 
+
+    #for j in range(CONV):
+    #    if local_i + j < SIZE:
+    #        shared_out[local_i] += shared_in[local_i + j] * shared_conv[j]
+
+    #if local_i < SIZE:
+    #    output[local_i] = shared_out[local_i]
+
+    if global_i < SIZE_2:
+        var local_sum: output.element_type = 0
+
+        @parameter
+        for j in range(CONV_2):
+            if local_i + j < SIZE_2:
+                local_sum += shared_in[local_i + j] * shared_conv[j]
+
+        output[global_i] = local_sum
 
 
 # ANCHOR_END: conv_1d_block_boundary
