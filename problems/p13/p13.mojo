@@ -24,9 +24,39 @@ fn conv_1d_simple[
     a: LayoutTensor[mut=False, dtype, in_layout],
     b: LayoutTensor[mut=False, dtype, conv_layout],
 ):
+    # Allocate shared memory using tensor builder
+    shared_in = tb[dtype]().row_major[SIZE]().shared().alloc()
+    shared_conv = tb[dtype]().row_major[CONV]().shared().alloc()
+    #shared_out = tb[dtype]().row_major[SIZE]().shared().alloc()
+
     global_i = block_dim.x * block_idx.x + thread_idx.x
     local_i = thread_idx.x
-    # FILL ME IN (roughly 14 lines)
+
+    if global_i < SIZE:
+        shared_in[local_i] = a[global_i]
+    if global_i < CONV:
+        shared_conv[local_i] = b[global_i]
+
+    barrier() 
+
+    #for j in range(CONV):
+    #    if local_i + j < SIZE:
+    #        shared_out[local_i] += shared_in[local_i + j] * shared_conv[j]
+
+    #if local_i < SIZE:
+    #    output[local_i] = shared_out[local_i]
+
+    if global_i < SIZE:
+        var local_sum: output.element_type = 0
+
+        @parameter
+        for j in range(CONV):
+            if local_i + j < SIZE:
+                local_sum += shared_in[local_i + j] * shared_conv[j]
+
+        output[global_i] = local_sum
+
+
 
 
 # ANCHOR_END: conv_1d_simple
