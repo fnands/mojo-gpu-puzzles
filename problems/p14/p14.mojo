@@ -24,7 +24,32 @@ fn prefix_sum_simple[
 ):
     global_i = block_dim.x * block_idx.x + thread_idx.x
     local_i = thread_idx.x
-    # FILL ME IN (roughly 18 lines)
+   
+    shared_a = tb[dtype]().row_major[SIZE]().shared().alloc()
+
+    if global_i < SIZE: 
+        shared_a[local_i] = a[global_i]
+
+    barrier()
+
+    var stride = 1
+
+    while stride <= TPB // 2:
+        var sum_two : output.element_type = 0
+        if local_i >= stride and global_i < SIZE:
+            sum_two = shared_a[local_i] + shared_a[local_i - stride]
+
+            barrier()
+            shared_a[local_i] = sum_two
+
+            barrier()
+        stride *= 2
+
+    if global_i < SIZE:
+        output[global_i] = shared_a[local_i]
+
+
+
 
 
 # ANCHOR_END: prefix_sum_simple
