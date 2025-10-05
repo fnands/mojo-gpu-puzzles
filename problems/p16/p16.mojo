@@ -55,7 +55,26 @@ fn single_block_matmul[
     local_row = thread_idx.y
     local_col = thread_idx.x
     # FILL ME IN (roughly 12 lines)
+    shared_a = tb[dtype]().row_major[TPB, TPB]().shared().alloc()
 
+    shared_b = tb[dtype]().row_major[TPB, TPB]().shared().alloc()
+
+
+    if row < size and col < size:
+        shared_a[local_row, local_col] = a[row, col]
+        shared_b[local_row, local_col] = b[row, col]
+
+    barrier()
+
+    if row < size and col < size:
+        var val : output.element_type = 0
+        @parameter
+        for i in range(size):
+            val += shared_a[local_row, i] * shared_b[i, local_col]
+
+        output[row, col] = val
+
+    
 
 # ANCHOR_END: single_block_matmul
 
