@@ -28,6 +28,17 @@ fn naive_matmul[
     # FILL ME IN (roughly 6 lines)
 
 
+
+    if row < SIZE and col < SIZE:
+        var val : output.element_type = 0
+        @parameter
+        for i in range(size):
+            val += a[row, i] * b[i, col]
+
+        output[row, col] = val
+
+
+
 # ANCHOR_END: naive_matmul
 
 
