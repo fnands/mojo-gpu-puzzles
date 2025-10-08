@@ -80,5 +80,5 @@ def test_softmax():
             print("All tests passed 🎉")
 
 
-# def main():
-#     test_softmax()
+#def main():
+#    test_softmax()
